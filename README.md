@@ -2,7 +2,7 @@
 
 **Authors:** Stefan Hörtling, Daniel Dold, Oliver Dürr, Beate Sick
 
-**Description:** The repository contains code for the conducted experiments, described in our [manuscript](https://arxiv.org/abs/2106.00528), and also code for a customized Keras layer which is doing TM-VI.
+**Description:** The repository is still under construction, but will soon contain the full code for the conducted experiments, described in our [manuscript](https://arxiv.org/abs/2106.00528), and also code for a customized Keras layer which is doing TM-VI.
 
 ## Experiments
 
