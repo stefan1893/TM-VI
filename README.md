@@ -1,12 +1,8 @@
-# Modeling-of-flexible-Posterior-Distributions-for-Bayesian-Neural-Networks
+# Transformation Models for Flexible Posteriors in Variational Bayes
 
-**Master Thesis**
+**Authors:** Stefan Hörtling, Daniel Dold, Oliver Dürr, Beate Sick
 
-**HTWG Konstanz, Institute for Optical Systems**
-
-**Author:** Stefan Hörtling
-
-**Description:** The repository contains both sample experiments and the universal VIMLTS Keras layer.
+**Description:** The repository contains code for the conducted experiments and for a customized Keras layer for T;-VI.
 
 ## Experiments
 
@@ -18,8 +14,8 @@
 |04|Going deeper | Check behavior in deeper BNNs
 
 
-## VIMLTS Keras layer
-To use the VIMLTS Keras layer, you have to import the 
+## Customized Keras layer for TM-VI
+To use the TM-VI Keras layer, you have to import the 
 
 >  src.vimlts_keras.py
 
