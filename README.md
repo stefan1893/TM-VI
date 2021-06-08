@@ -2,7 +2,7 @@
 
 **Authors:** Stefan Hörtling, Daniel Dold, Oliver Dürr, Beate Sick
 
-**Description:** The repository contains code for the conducted experiments and for a customized Keras layer for T;-VI.
+**Description:** The repository contains code for the conducted experiments and for a customized Keras layer for TM-VI.
 
 ## Experiments
 
