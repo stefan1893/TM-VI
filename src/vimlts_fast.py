@@ -94,7 +94,7 @@ class VimltsLinear(tf.keras.layers.Layer):
         """
 
         # Kernel
-        shape = (input_shape[1], self.units_)
+        shape = (input_shape.as_list()[-1], self.units_)
         self.z_dist_ = tfd.Normal(loc=tf.zeros(shape),
                                   scale=tf.ones(shape))
         self.k_alpha_w = self.add_weight(name='k_alpha_w',
