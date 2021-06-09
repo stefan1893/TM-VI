@@ -13,6 +13,12 @@
 |03|Small and shallow networks | Check assumption: posterior approximations could be complex in small and shallow networks
 |04|Going deeper | Check behavior in deeper BNNs
 
+## Conda environment
+The "spec-file.txt" contains the conda environment specification which we used for the experiments.
+You can create our own environment wiht the following command:
+
+    conda create -n 'name' --file spec-file.txt
+
 
 ## Customized Keras layer for TM-VI
 To use the TM-VI Keras layer, you have to import the 
