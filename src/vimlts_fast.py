@@ -202,7 +202,12 @@ class VimltsLinear(tf.keras.layers.Layer):
         dw_dz /= tf.cast(tf.reduce_prod(w.shape[1:]), dtype=tf.float32)
         log_p_z = self.z_dist_.log_prob(zz)
         log_q_w = log_p_z - tf.math.log(tf.math.abs(dw_dz))
-        return tf.math.exp(log_q_w).numpy().squeeze(), w.numpy().squeeze()
+        return tf.math.exp(log_q_w), w
+
+    def forward_given_theta(self, inputs, theta_w, theta_b=None):
+        if theta_b is None:
+            return self.activation_(inputs @ theta_w)
+        return self.activation_(inputs @ theta_w + theta_b[:, None, :])
 
     def call(self, inputs, **kwargs):
         """
