@@ -191,18 +191,33 @@ class VimltsLinear(tf.keras.layers.Layer):
         """
         return tf.math.multiply(tf.math.softplus(self.alpha_w), z_w) - self.beta_w
 
-    def get_w_dist(self, num=1000):
+    # def get_w_dist(self, num=1000):
+    #     with tf.GradientTape() as tape:
+    #         zz = tf.dtypes.cast(tf.reshape(tf.linspace(-6, 6, num), shape=(-1, 1, 1)), tf.float32)
+    #         tape.watch(zz)
+    #         self.activate_kernel_transformation()
+    #         w = self.f_3(self.f_2(self.f_1(zz)))
+    #         dw_dz = tape.gradient(w, zz)
+    #     # tf.reduce_prod(w.shape[1:]) -> undo gradiant adding because of zz broadcasting
+    #     dw_dz /= tf.cast(tf.reduce_prod(w.shape[1:]), dtype=tf.float32)
+    #     log_p_z = self.z_dist_.log_prob(zz)
+    #     log_q_w = log_p_z - tf.math.log(tf.math.abs(dw_dz))
+    #     return tf.math.exp(log_q_w), w
+
+    def sample(self, num=1000, bijector=tfp.bijectors.Identity()):
         with tf.GradientTape() as tape:
-            zz = tf.dtypes.cast(tf.reshape(tf.linspace(-6, 6, num), shape=(-1, 1, 1)), tf.float32)
+            zz = self.z_dist_.sample(num)
             tape.watch(zz)
             self.activate_kernel_transformation()
             w = self.f_3(self.f_2(self.f_1(zz)))
             dw_dz = tape.gradient(w, zz)
-        # tf.reduce_prod(w.shape[1:]) -> undo gradiant adding because of zz broadcasting
         dw_dz /= tf.cast(tf.reduce_prod(w.shape[1:]), dtype=tf.float32)
         log_p_z = self.z_dist_.log_prob(zz)
         log_q_w = log_p_z - tf.math.log(tf.math.abs(dw_dz))
-        return tf.math.exp(log_q_w).numpy().squeeze(), w.numpy().squeeze()
+
+        wt = bijector(w)
+        log_q_wt = log_q_w - bijector.forward_log_det_jacobian(w, event_ndims=0)
+        return wt, log_q_wt
 
     def call(self, inputs, **kwargs):
         """
@@ -308,11 +323,22 @@ class ConjungateDenseViGauss(tf.keras.layers.Layer):
         self.add_loss(kl)
         return out
 
-    def get_w_dist(self, num=1000):
+    # def get_w_dist(self, num=1000):
+    #     mu = self.kernel_mu
+    #     sigma = tf.math.softplus(self.kernel_rho)
+    #     print(f"VI Gaus with: N({mu},{sigma})")
+    #     dist = tfd.Normal(mu, sigma)
+    #     w_sample = tf.sort(tf.squeeze(dist.sample(num)))
+    #     q_w = dist.prob(w_sample)
+    #     return q_w, w_sample
+
+    def sample(self, num=1000, bijector=tfp.bijectors.Identity()):
         mu = self.kernel_mu
         sigma = tf.math.softplus(self.kernel_rho)
         print(f"VI Gaus with: N({mu},{sigma})")
         dist = tfd.Normal(mu, sigma)
-        w_sample = tf.sort(tf.squeeze(dist.sample(num)))
-        q_w = dist.prob(w_sample)
-        return q_w.numpy().squeeze(), w_sample.numpy().squeeze()
+        w = tf.sort(dist.sample(num))
+        log_q_w = dist.log_prob(w)
+        wt = bijector(w)
+        log_q_wt = log_q_w - bijector.forward_log_det_jacobian(w, event_ndims=0)
+        return wt, log_q_wt
