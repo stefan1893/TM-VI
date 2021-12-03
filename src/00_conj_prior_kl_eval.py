@@ -64,7 +64,8 @@ def softplus_inv(y):
 def initialize_models(seed=2, prior_dist=tfd.Beta(concentration1=1.1, concentration0=1.1)):
     models = {}
     # Ms = [1, 3, 10, 30, 100, 300]
-    Ms = [2, 4, 5, 6, 7, 8, 9, 15]
+    # Ms = [2, 4, 5, 6, 7, 8, 9, 15]
+    Ms = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 30, 100, 300]
     for M in Ms:
         # init params
         kernel_initializers = dict(kernel_init_alpha_w=initializers.RandomNormal(mean=1.5),
@@ -75,8 +76,8 @@ def initialize_models(seed=2, prior_dist=tfd.Beta(concentration1=1.1, concentrat
                                        initializers.RandomNormal(mean=softplus_inv((2 + 1.5) / M), stddev=.5) for i in
                                        range(M)])
         # define model
-        tf.random.set_seed(seed)
-        np.random.seed(seed)
+        # tf.random.set_seed(seed)
+        # np.random.seed(seed)
         layer = VimltsLinear(1,
                              activation=tfp.bijectors.Sigmoid(low=1e-6, high=1. - 1e-6),
                              **kernel_initializers,
@@ -87,8 +88,8 @@ def initialize_models(seed=2, prior_dist=tfd.Beta(concentration1=1.1, concentrat
         model.build(input_shape=(None, 1))
         models[f"TM-VI M={M}"] = model
 
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
+    # tf.random.set_seed(seed)
+    # np.random.seed(seed)
     vi_gauss_l = ConjungateDenseViGauss(1,
                                         activation=tfp.bijectors.Sigmoid(low=1e-6, high=1. - 1e-6),
                                         num_samples=10000,
@@ -142,7 +143,7 @@ if __name__ == '__main__':
     beta_post = beta + len(data) - np.sum(data)
     post_analytic = tfd.Beta(alpha_post.astype(np.float32), beta_post.astype(np.float32))
 
-    seeds = np.arange(2, 41, 2)
+    seeds = np.arange(2, 61, 2)
     df = None
     samples_all = {}
     for s in seeds:
@@ -158,7 +159,7 @@ if __name__ == '__main__':
             df = pd.concat([df, df_sub])
     df = df.reset_index().rename(columns={"index": "seed"})
     print(df)
-    df.to_csv(f"{os.path.splitext(__file__)[0]}_kl.csv")
-    np.savez(f"{os.path.splitext(__file__)[0]}_samples.npz", samples=samples_all)
+    df.to_csv(f"{os.path.splitext(__file__)[0]}_kl_all.csv")
+    np.savez(f"{os.path.splitext(__file__)[0]}_samples_all.npz", samples=samples_all)
 
 # %%

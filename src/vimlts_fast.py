@@ -95,8 +95,9 @@ class VimltsLinear(tf.keras.layers.Layer):
 
         # Kernel
         shape = (input_shape.as_list()[-1], self.units_)
-        self.z_dist_ = tfd.Normal(loc=tf.zeros(shape),
-                                  scale=tf.ones(shape))
+        # self.z_dist_ = tfd.Normal(loc=tf.zeros(shape),
+        #                           scale=tf.ones(shape))
+        self.z_dist_ = tfd.TruncatedNormal(loc=tf.ones(shape)*0.5, scale=tf.ones(shape)*0.15, low=0., high=1.)
         self.k_alpha_w = self.add_weight(name='k_alpha_w',
                                          shape=shape,
                                          initializer=self.k_alpha_w_,
@@ -118,8 +119,9 @@ class VimltsLinear(tf.keras.layers.Layer):
 
         if self.use_bias:
             shape = (self.units_,)
-            self.b_z_dist_ = tfd.Normal(loc=tf.zeros(shape),
-                                        scale=tf.ones(shape))
+            # self.b_z_dist_ = tfd.Normal(loc=tf.zeros(shape),
+            #                             scale=tf.ones(shape))
+            self.b_z_dist_ = tfd.TruncatedNormal(loc=tf.ones(shape)*0.5, scale=tf.ones(shape)*0.15, low=0., high=1.)
             self.b_alpha_w = self.add_weight(name='b_alpha_w',
                                              shape=shape,
                                              initializer=self.b_alpha_w_,
@@ -156,14 +158,14 @@ class VimltsLinear(tf.keras.layers.Layer):
         self.theta_prime = self.k_theta_prime
         self.beta_dist = self.k_beta_dist
 
-    def f_1(self, z):
-        """
-
-        :param z: [#samples x #input x #output]
-        :return: [#samples x #input x #output]
-        """
-        z_ = tf.math.multiply(tf.math.softplus(self.alpha_z), z) - self.beta_z
-        return tf.math.sigmoid(z_)
+    # def f_1(self, z):
+    #     """
+    #
+    #     :param z: [#samples x #input x #output]
+    #     :return: [#samples x #input x #output]
+    #     """
+    #     z_ = tf.math.multiply(tf.math.softplus(self.alpha_z), z) - self.beta_z
+    #     return tf.math.sigmoid(z_)
 
     def f_2(self, z_):
         """
@@ -183,13 +185,13 @@ class VimltsLinear(tf.keras.layers.Layer):
         return tf.math.reduce_mean(fIm * theta, axis=-1)
         # return z_
 
-    def f_3(self, z_w):
-        """
-
-        :type z_w: object
-        :return: shape [#sample x #input x #output]
-        """
-        return tf.math.multiply(tf.math.softplus(self.alpha_w), z_w) - self.beta_w
+    # def f_3(self, z_w):
+    #     """
+    #
+    #     :type z_w: object
+    #     :return: shape [#sample x #input x #output]
+    #     """
+    #     return tf.math.multiply(tf.math.softplus(self.alpha_w), z_w) - self.beta_w
 
     # def get_w_dist(self, num=1000):
     #     with tf.GradientTape() as tape:
@@ -209,7 +211,8 @@ class VimltsLinear(tf.keras.layers.Layer):
             zz = self.z_dist_.sample(num)
             tape.watch(zz)
             self.activate_kernel_transformation()
-            w = self.f_3(self.f_2(self.f_1(zz)))
+            # w = self.f_3(self.f_2(self.f_1(zz)))
+            w = self.f_2(zz)
             dw_dz = tape.gradient(w, zz)
         dw_dz /= tf.cast(tf.reduce_prod(w.shape[1:]), dtype=tf.float32)
         log_p_z = self.z_dist_.log_prob(zz)
@@ -230,7 +233,8 @@ class VimltsLinear(tf.keras.layers.Layer):
             z = self.z_dist_.sample(self.num_samples_)
             tape.watch(z)
             self.activate_kernel_transformation()
-            w = self.f_3(self.f_2(self.f_1(z)))
+            # w = self.f_3(self.f_2(self.f_1(z)))
+            w = self.f_2(z)
             dw_dz = tape.gradient(w, z)
 
         with tf.GradientTape() as tape:
@@ -238,7 +242,8 @@ class VimltsLinear(tf.keras.layers.Layer):
                 zb = self.b_z_dist_.sample(self.num_samples_)
                 tape.watch(zb)
                 self.activate_bias_transformation()
-                b = self.f_3(self.f_2(self.f_1(zb)))
+                # b = self.f_3(self.f_2(self.f_1(zb)))
+                b = self.f_2(zb)
                 db_dz = tape.gradient(b, zb)
 
         # inputs (batch, in); w (sample, in ,out)
