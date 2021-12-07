@@ -21,6 +21,7 @@ class VimltsLinear(tf.keras.layers.Layer):
                  bias_init_beta_z: initializers = None,
                  bias_init_thetas: list = None,
                  prior_dist: object = tfd.Normal(loc=0., scale=1.),
+                 base_dist: object = tfd.TruncatedNormal(loc=0.5, scale=0.15, low=0., high=1.),
                  **kwargs) -> object:
         """
 
@@ -74,6 +75,7 @@ class VimltsLinear(tf.keras.layers.Layer):
         self.beta_z = None
         self.theta_prime = None
         self.beta_dist = None
+        self.base_dist_ = base_dist
         super().__init__(**kwargs)
 
     @staticmethod
@@ -97,7 +99,9 @@ class VimltsLinear(tf.keras.layers.Layer):
         shape = (input_shape.as_list()[-1], self.units_)
         # self.z_dist_ = tfd.Normal(loc=tf.zeros(shape),
         #                           scale=tf.ones(shape))
-        self.z_dist_ = tfd.TruncatedNormal(loc=tf.ones(shape)*0.5, scale=tf.ones(shape)*0.15, low=0., high=1.)
+        self.z_dist_ = tfd.BatchBroadcast(self.base_dist_, to_shape=shape)
+        # self.base_dist_cls_(loc=tf.ones(shape)*0.5, scale=tf.ones(shape)*0.15, low=0., high=1.)
+        # self.z_dist_ = tfd.Un(loc=tf.ones(shape)*0.5, scale=tf.ones(shape)*0.15, low=0., high=1.)
         self.k_alpha_w = self.add_weight(name='k_alpha_w',
                                          shape=shape,
                                          initializer=self.k_alpha_w_,
@@ -121,7 +125,8 @@ class VimltsLinear(tf.keras.layers.Layer):
             shape = (self.units_,)
             # self.b_z_dist_ = tfd.Normal(loc=tf.zeros(shape),
             #                             scale=tf.ones(shape))
-            self.b_z_dist_ = tfd.TruncatedNormal(loc=tf.ones(shape)*0.5, scale=tf.ones(shape)*0.15, low=0., high=1.)
+            # self.b_z_dist_ = tfd.TruncatedNormal(loc=tf.ones(shape)*0.5, scale=tf.ones(shape)*0.15, low=0., high=1.)
+            self.b_z_dist_ = tfd.BatchBroadcast(self.base_dist_, to_shape=shape)
             self.b_alpha_w = self.add_weight(name='b_alpha_w',
                                              shape=shape,
                                              initializer=self.b_alpha_w_,
